@@ -4,3 +4,5 @@ next.config.js
 postcss.config.js
 tailwind.config.js
 service-worker.js
+/src/backend
+/src/pages/api
