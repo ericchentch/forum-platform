@@ -1,4 +1,5 @@
 import mysql from 'mysql2/promise'
+import { RepositoryException } from '../exception/repository.exception'
 
 const config = {
   host: process.env.DB_HOST || '',
@@ -29,7 +30,7 @@ const executeQuery = async (sql: string) => {
     return emptyOrRows(results) as any
   } catch (error: any) {
     console.error(error.message)
-    return [] as any
+    throw new RepositoryException(error.message)
   }
 }
 
