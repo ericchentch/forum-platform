@@ -1,7 +1,14 @@
 export interface IConditionObject {
   key: string
-  value: any[]
+  value: string
 }
 export interface IGenerateWhere {
-  params: IConditionObject[]
+  params?: IConditionObject[]
+  clazz: any
+}
+
+export interface IResAndEntity {
+  resKey: string
+  entityKey: string
+  typeEntity: 'string' | 'date' | 'boolean' | 'number'
 }

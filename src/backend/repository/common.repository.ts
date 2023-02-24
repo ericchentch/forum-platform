@@ -3,6 +3,8 @@ import mysql from 'mysql2/promise'
 import { RepositoryException } from '../exception/repository.exception'
 
 /*
+
+
  config for connection db and execute query
  author: @ericchentch
 */
@@ -41,28 +43,58 @@ const executeQuery = async <T>(sql: string) => {
 }
 
 /*
+
+
   generate conditions for query
   author: @ericchentch
 */
-
-const generateConditionWhere = ({ params }: IGenerateWhere) => {
-  let condition = ''
-  if (params.length > 0) {
-    condition += ' WHERE '
+const generateConditionWhere = (props: IGenerateWhere) => {
+  const { params, clazz } = props
+  if (!params) {
+    return ''
   }
+  if (typeof clazz !== 'object') {
+    return ''
+  }
+  let condition = ''
+  let isWhere = true
   for (let i = 0; i < params.length; i++) {
-    for (let j = 0; j < params[i].value.length; j++) {
-      if (typeof params[i].value[j] === 'number' || typeof params[i].value[j] === 'boolean') {
-        condition += ` ${params[i].key}=${typeof params[i].value[j]} `
+    let isAnd = false
+    const values = params[i].value.split(',')
+    for (let j = 0; j < values.length; j++) {
+      let isOr = false
+      if (typeof clazz[params[i].key] === 'number') {
+        if (isWhere) {
+          condition += ' WHERE '
+          isWhere = false
+          isOr = true
+        }
+        condition += ` ${params[i].key}=${Number(values[j])} `
       }
-      if (typeof params[i].value[j] === 'string' || typeof params[i].value[j] === typeof Date) {
-        condition += ` ${params[i].key}='${typeof params[i].value[j]}' `
+      if (typeof clazz[params[i].key] === 'boolean') {
+        if (isWhere) {
+          condition += ' WHERE '
+          isWhere = false
+          isOr = true
+        }
+        condition += ` ${params[i].key}=${Boolean(values[j]) === true ? 1 : 0} `
       }
-      if (j !== params[i].value.length - 1) {
+      if (typeof clazz[params[i].key] === 'string' || typeof clazz[params[i].key] === typeof Date) {
+        if (isWhere) {
+          condition += ' WHERE '
+          isWhere = false
+          isOr = true
+        }
+        condition += ` ${params[i].key}='${values[j]}' `
+      }
+      if (j !== values.length - 1 && isOr) {
         condition += ' OR '
       }
+      if (isOr) {
+        isAnd = true
+      }
     }
-    if (i !== params.length - 1) {
+    if (i !== params.length - 1 && isAnd) {
       condition += ' AND '
     }
   }

@@ -2,8 +2,10 @@ import { formatDate } from '@/src/libs'
 import { CommonResponse } from '@/src/shared'
 import { UserResponse } from '@/src/shared/user.dto'
 import { Inject, Injectable } from '@nestjs/common'
+import { Request } from 'express'
+import { userResEntity } from '../../inventory'
 import { UserRepository } from '../../repository/user/user.repository'
-import { defaultCommonResponse } from '../common.service'
+import { defaultCommonResponse, mappingParams } from '../common.service'
 
 @Injectable()
 export class UserService {
@@ -12,8 +14,8 @@ export class UserService {
     private useRepository: UserRepository
   ) {}
 
-  async getListUsers(): Promise<CommonResponse<UserResponse[]>> {
-    const result = await this.useRepository.findAll([])
+  async getListUsers(req: Request): Promise<CommonResponse<UserResponse[]>> {
+    const result = await this.useRepository.findAll(mappingParams(req, userResEntity))
     return {
       ...defaultCommonResponse,
       data: result.map((item) => {
