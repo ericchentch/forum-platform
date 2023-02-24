@@ -1,12 +1,13 @@
 import { Injectable } from '@nestjs/common'
-import { executeQuery } from '../common.repository'
+import { BaseRepository } from '../base.repository'
 import { UserEntity } from './user.entity'
 
 @Injectable()
-export class UserRepository {
-  async getAllUser(): Promise<UserEntity[]> {
-    const query = 'SELECT * FROM user'
-    const result = await executeQuery(query)
-    return result
+export class UserRepository extends BaseRepository<UserEntity> {
+  tableUser: string = 'user u'
+
+  constructor() {
+    super()
+    this.table = this.tableUser
   }
 }

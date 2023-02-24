@@ -13,7 +13,7 @@ export class UserService {
   ) {}
 
   async getListUsers(): Promise<CommonResponse<UserResponse[]>> {
-    const result = await this.useRepository.getAllUser()
+    const result = await this.useRepository.findAll([])
     return {
       ...defaultCommonResponse,
       data: result.map((item) => {
