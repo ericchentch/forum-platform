@@ -93,8 +93,27 @@ export const mapperConvertValue = (value: any, targetType: any): any => {
   if (isNumber(value) && targetType === 'boolean') {
     return Number(value) === 1
   }
-  if (targetType === 'string') {
-    String(value)
+  if (typeof value === 'string' && targetType === 'number' && isNumber(value)) {
+    return Number(value)
   }
-  return String(value)
+  if (targetType === 'string') {
+    return String(value)
+  }
+  return 'error'
+}
+
+/*
+  author: @ericchentch
+  switch value for mapper
+*/
+export const convertObjectToKeyValue = (source: object) => {
+  const keys = Object.keys(source)
+  return keys
+    .map((key) => {
+      return {
+        key,
+        value: source[key as keyof typeof source],
+      }
+    })
+    .filter((item) => item.value !== 'error')
 }

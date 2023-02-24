@@ -1,6 +1,7 @@
-import { IGenerateWhere } from '@/src/shared'
+import { IConditionObject } from '@/src/shared'
 import mysql from 'mysql2/promise'
 import { RepositoryException } from '../exception/repository.exception'
+import { isBoolean, isNumber, isValidDate } from './../inventory/common.inventory'
 
 /*
 
@@ -37,7 +38,6 @@ const executeQuery = async <T>(sql: string) => {
     const [results] = await connection.execute(sql)
     return emptyOrRows(results) as T[]
   } catch (error: any) {
-    console.error(error.message)
     throw new RepositoryException(error.message)
   }
 }
@@ -48,12 +48,8 @@ const executeQuery = async <T>(sql: string) => {
   generate conditions for query
   author: @ericchentch
 */
-const generateConditionWhere = (props: IGenerateWhere) => {
-  const { params, clazz } = props
+const generateConditionWhere = (params?: IConditionObject[]) => {
   if (!params) {
-    return ''
-  }
-  if (typeof clazz !== 'object') {
     return ''
   }
   let condition = ''
@@ -63,7 +59,15 @@ const generateConditionWhere = (props: IGenerateWhere) => {
     const values = params[i].value.split(',')
     for (let j = 0; j < values.length; j++) {
       let isOr = false
-      if (typeof clazz[params[i].key] === 'number') {
+      if ((typeof params[i].value === 'string' || isValidDate(params[i].value)) && !isOr) {
+        if (isWhere) {
+          condition += ' WHERE '
+          isWhere = false
+          isOr = true
+        }
+        condition += ` ${params[i].key}='${values[j]}' `
+      }
+      if (isNumber(params[i].value) && !isOr) {
         if (isWhere) {
           condition += ' WHERE '
           isWhere = false
@@ -71,21 +75,13 @@ const generateConditionWhere = (props: IGenerateWhere) => {
         }
         condition += ` ${params[i].key}=${Number(values[j])} `
       }
-      if (typeof clazz[params[i].key] === 'boolean') {
+      if (isBoolean(params[i].value) && !isOr) {
         if (isWhere) {
           condition += ' WHERE '
           isWhere = false
           isOr = true
         }
         condition += ` ${params[i].key}=${Boolean(values[j]) === true ? 1 : 0} `
-      }
-      if (typeof clazz[params[i].key] === 'string' || typeof clazz[params[i].key] === typeof Date) {
-        if (isWhere) {
-          condition += ' WHERE '
-          isWhere = false
-          isOr = true
-        }
-        condition += ` ${params[i].key}='${values[j]}' `
       }
       if (j !== values.length - 1 && isOr) {
         condition += ' OR '
@@ -103,6 +99,64 @@ const generateConditionWhere = (props: IGenerateWhere) => {
 
 /*
   
+  generate insert for query
+  author: @ericchentch
+*/
+const generateInsert = (params: IConditionObject[]) => {
+  let insertQuery = ' ('
+  for (let i = 0; i < params.length; i++) {
+    insertQuery += `${params[i].key}`
+    if (i !== params.length - 1) {
+      insertQuery += ','
+    }
+  }
+  insertQuery += ') VALUES ('
+  for (let i = 0; i < params.length; i++) {
+    let skip = false
+    if (typeof params[i].value === 'string' && !skip) {
+      insertQuery += `'${params[i].value}'`
+      skip = true
+    }
+    if (isNumber(params[i].value) && !skip) {
+      insertQuery += `${params[i].value}`
+      skip = true
+    }
+    if (isBoolean(params[i].value) && !skip) {
+      insertQuery += `${params[i].value}`
+      skip = true
+    }
+    if (i !== params.length - 1) {
+      insertQuery += ','
+    }
+  }
+  insertQuery += ')'
+  return insertQuery
+}
+
+/*
+  
+  generate update for query
+  author: @ericchentch
 */
 
-export { emptyOrRows, executeQuery, generateConditionWhere }
+const generateUpdate = (params: IConditionObject[]) => {
+  let insertQuery = ' SET '
+  for (let i = 0; i < params.length; i++) {
+    let skip = false
+    if (typeof params[i].value === 'string' && !skip) {
+      insertQuery += `${params[i].key}='${params[i].value}',`
+      skip = true
+    }
+    if (isNumber(params[i].value) && !skip) {
+      insertQuery += `${params[i].key}=${params[i].value},`
+      skip = true
+    }
+    if (isBoolean(params[i].value) && !skip) {
+      insertQuery += `${params[i].key}=${params[i].value},`
+      skip = true
+    }
+  }
+  return `${insertQuery}modified=NOW()`
+}
+
+export { emptyOrRows, executeQuery, generateConditionWhere, generateInsert, generateUpdate }
