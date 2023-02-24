@@ -1,4 +1,4 @@
-import { IResAndEntity } from '@/src/shared'
+import { IResAndEntity, UserResponse } from '@/src/shared'
 
 export const userResEntity: IResAndEntity[] = [
   {
@@ -12,3 +12,15 @@ export const userResEntity: IResAndEntity[] = [
     typeEntity: 'number',
   },
 ]
+
+export const defaultUserResponse: UserResponse = {
+  id: '',
+  name: '',
+  username: '',
+  password: '',
+  phone: '',
+  email: '',
+  created: '',
+  modified: '',
+  isActive: true,
+}

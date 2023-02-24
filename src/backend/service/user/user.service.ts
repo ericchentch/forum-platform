@@ -1,11 +1,11 @@
-import { formatDate } from '@/src/libs'
 import { CommonResponse } from '@/src/shared'
 import { UserResponse } from '@/src/shared/user.dto'
 import { Inject, Injectable } from '@nestjs/common'
 import { Request } from 'express'
-import { userResEntity } from '../../inventory'
+import { defaultCommonResponse, defaultUserResponse, userResEntity } from '../../inventory'
 import { UserRepository } from '../../repository/user/user.repository'
-import { defaultCommonResponse, mappingParams } from '../common.service'
+import { mappingParams, objectMapper } from '../common.service'
+import { UserEntity } from './../../repository/user/user.entity'
 
 @Injectable()
 export class UserService {
@@ -18,19 +18,7 @@ export class UserService {
     const result = await this.useRepository.findAll(mappingParams(req, userResEntity))
     return {
       ...defaultCommonResponse,
-      data: result.map((item) => {
-        return {
-          id: item.id.toString(),
-          name: item.name,
-          username: item.username,
-          password: item.password,
-          phone: item.phone,
-          email: item.email,
-          created: formatDate(item.created, '-'),
-          modified: item.modified ? formatDate(item.modified, '-') : '',
-          isActive: item.isActive === 1 ? true : false,
-        }
-      }),
+      data: result.map((item) => objectMapper<UserEntity, UserResponse>(item, defaultUserResponse)),
     }
   }
 }
