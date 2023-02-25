@@ -15,7 +15,7 @@ export class BaseRepository<T extends {}> {
   private readonly logger = new Logger(HttpExceptionFilter.name)
 
   async findAll(params?: IConditionObject[]) {
-    const query = `SELECT * FROM ${this.table} ${generateConditionWhere(params)}`
+    const query = `SELECT * FROM ${this.table} ${generateConditionWhere(this.clazz, params)}`
     this.logger.warn(query)
     const result = await executeQuery<T>(query)
     return result
@@ -38,14 +38,21 @@ export class BaseRepository<T extends {}> {
         value: String(thisId.value),
       }
       const query = `UPDATE ${this.table} ${generateUpdate(
-        params.filter((item) => item.key !== 'id')
-      )} ${generateConditionWhere([condition])}`
+        params.filter((item) => item.key !== 'id'),
+        this.clazz
+      )} ${generateConditionWhere(this.clazz, [condition])}`
       this.logger.warn(query)
       await executeQuery<T>(query)
     } else {
-      const query = `INSERT INTO ${this.table} ${generateInsert(params)}`
+      const query = `INSERT INTO ${this.table} ${generateInsert(params, this.clazz)}`
       this.logger.warn(query)
       await executeQuery<T>(query)
     }
+  }
+
+  async deleteEntity(params: IConditionObject[]) {
+    const query = `DELETE FROM ${this.table} ${generateConditionWhere(params)}`
+    this.logger.warn(query)
+    await executeQuery<T>(query)
   }
 }

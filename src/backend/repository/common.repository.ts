@@ -1,7 +1,12 @@
 import { IConditionObject } from '@/src/shared'
 import mysql from 'mysql2/promise'
 import { RepositoryException } from '../exception/repository.exception'
-import { isBoolean, isNumber, isValidDate } from './../inventory/common.inventory'
+import {
+  convertToDateTimeSql,
+  isBoolean,
+  isNumber,
+  isValidDate,
+} from './../inventory/common.inventory'
 
 /*
 
@@ -48,7 +53,7 @@ const executeQuery = async <T>(sql: string) => {
   generate conditions for query
   author: @ericchentch
 */
-const generateConditionWhere = (params?: IConditionObject[]) => {
+const generateConditionWhere = (clazz: object, params?: IConditionObject[]) => {
   if (!params) {
     return ''
   }
@@ -59,7 +64,11 @@ const generateConditionWhere = (params?: IConditionObject[]) => {
     const values = params[i].value.split(',')
     for (let j = 0; j < values.length; j++) {
       let isOr = false
-      if ((typeof params[i].value === 'string' || isValidDate(params[i].value)) && !isOr) {
+      if (
+        (typeof clazz[params[i].key as keyof typeof clazz] === 'string' ||
+          isValidDate(clazz[params[i].key as keyof typeof clazz])) &&
+        !isOr
+      ) {
         if (isWhere) {
           condition += ' WHERE '
           isWhere = false
@@ -67,7 +76,7 @@ const generateConditionWhere = (params?: IConditionObject[]) => {
         }
         condition += ` ${params[i].key}='${values[j]}' `
       }
-      if (isNumber(params[i].value) && !isOr) {
+      if (isNumber(clazz[params[i].key as keyof typeof clazz]) && !isOr) {
         if (isWhere) {
           condition += ' WHERE '
           isWhere = false
@@ -75,13 +84,15 @@ const generateConditionWhere = (params?: IConditionObject[]) => {
         }
         condition += ` ${params[i].key}=${Number(values[j])} `
       }
-      if (isBoolean(params[i].value) && !isOr) {
+      if (isBoolean(clazz[params[i].key as keyof typeof clazz]) && !isOr) {
         if (isWhere) {
           condition += ' WHERE '
           isWhere = false
           isOr = true
         }
-        condition += ` ${params[i].key}=${Boolean(values[j]) === true ? 1 : 0} `
+        condition += ` ${clazz[params[i].key as keyof typeof clazz]}=${
+          Boolean(values[j]) === true ? 1 : 0
+        } `
       }
       if (j !== values.length - 1 && isOr) {
         condition += ' OR '
@@ -102,7 +113,7 @@ const generateConditionWhere = (params?: IConditionObject[]) => {
   generate insert for query
   author: @ericchentch
 */
-const generateInsert = (params: IConditionObject[]) => {
+const generateInsert = (params: IConditionObject[], clazz: object) => {
   let insertQuery = ' ('
   for (let i = 0; i < params.length; i++) {
     insertQuery += `${params[i].key}`
@@ -113,16 +124,20 @@ const generateInsert = (params: IConditionObject[]) => {
   insertQuery += ') VALUES ('
   for (let i = 0; i < params.length; i++) {
     let skip = false
-    if (typeof params[i].value === 'string' && !skip) {
+    if (typeof clazz[params[i].key as keyof typeof clazz] === 'string' && !skip) {
       insertQuery += `'${params[i].value}'`
       skip = true
     }
-    if (isNumber(params[i].value) && !skip) {
+    if (isNumber(clazz[params[i].key as keyof typeof clazz]) && !skip) {
       insertQuery += `${params[i].value}`
       skip = true
     }
-    if (isBoolean(params[i].value) && !skip) {
+    if (isBoolean(clazz[params[i].key as keyof typeof clazz]) && !skip) {
       insertQuery += `${params[i].value}`
+      skip = true
+    }
+    if (isValidDate(clazz[params[i].key as keyof typeof clazz]) && !skip) {
+      insertQuery += `'${convertToDateTimeSql(clazz[params[i].key as keyof typeof clazz])}'`
       skip = true
     }
     if (i !== params.length - 1) {
@@ -139,20 +154,26 @@ const generateInsert = (params: IConditionObject[]) => {
   author: @ericchentch
 */
 
-const generateUpdate = (params: IConditionObject[]) => {
+const generateUpdate = (params: IConditionObject[], clazz: object) => {
   let insertQuery = ' SET '
   for (let i = 0; i < params.length; i++) {
     let skip = false
-    if (typeof params[i].value === 'string' && !skip) {
+    if (typeof clazz[params[i].key as keyof typeof clazz] === 'string' && !skip) {
       insertQuery += `${params[i].key}='${params[i].value}',`
       skip = true
     }
-    if (isNumber(params[i].value) && !skip) {
+    if (isNumber(clazz[params[i].key as keyof typeof clazz]) && !skip) {
       insertQuery += `${params[i].key}=${params[i].value},`
       skip = true
     }
-    if (isBoolean(params[i].value) && !skip) {
+    if (isBoolean(clazz[params[i].key as keyof typeof clazz]) && !skip) {
       insertQuery += `${params[i].key}=${params[i].value},`
+      skip = true
+    }
+    if (isValidDate(clazz[params[i].key as keyof typeof clazz]) && !skip) {
+      insertQuery += `${params[i].key}='${convertToDateTimeSql(
+        clazz[params[i].key as keyof typeof clazz]
+      )}',`
       skip = true
     }
   }

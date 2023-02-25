@@ -11,8 +11,7 @@ export const isBoolean = (val: any) => val === false || val === true
   check number
   author: @ericchentch
 */
-export const isNumber = (val: any) => !isNaN(val)
-
+export const isNumber = (val: any) => !isNaN(val) && typeof val === 'number'
 /*
 
 
@@ -20,7 +19,16 @@ export const isNumber = (val: any) => !isNaN(val)
   author: @ericchentch
 */
 export const isValidDate = (date: any) => {
-  return date && Object.prototype.toString.call(date) === '[object Date]' && !isNaN(date)
+  return date && date.constructor === Date
+}
+/*
+
+
+  convert date js to dateTime sql
+  author: @ericchentch
+*/
+export const convertToDateTimeSql = (date: Date) => {
+  return date.toISOString().slice(0, 19).replace('T', ' ')
 }
 
 export const defaultCommonResponse = {
