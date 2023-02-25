@@ -1,18 +1,5 @@
-import { IResAndEntity, UserResponse } from '@/src/shared'
+import { UserResponse } from '@/src/shared'
 import { UserEntity } from '../repository/user/user.entity'
-
-export const userResEntity: IResAndEntity[] = [
-  {
-    resKey: 'id',
-    entityKey: 'id',
-    typeEntity: 'number',
-  },
-  {
-    resKey: 'isActive',
-    entityKey: 'isActive',
-    typeEntity: 'number',
-  },
-]
 
 export const userEntity: UserEntity = {
   id: 0,

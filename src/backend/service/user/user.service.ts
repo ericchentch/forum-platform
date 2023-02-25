@@ -2,14 +2,9 @@ import { CommonResponse } from '@/src/shared'
 import { UserResponse } from '@/src/shared/user.dto'
 import { Inject, Injectable } from '@nestjs/common'
 import { Request } from 'express'
-import {
-  defaultCommonResponse,
-  defaultUserResponse,
-  userEntity,
-  userResEntity,
-} from '../../inventory'
+import { defaultCommonResponse, defaultUserResponse, userEntity } from '../../inventory'
 import { UserRepository } from '../../repository/user/user.repository'
-import { convertObjectToKeyValue, mappingParams, objectMapper } from '../common.service'
+import { convertObjectToKeyValue, objectMapper } from '../common.service'
 import { UserRequest } from './../../../shared/user.dto'
 import { UserEntity } from './../../repository/user/user.entity'
 
@@ -21,7 +16,8 @@ export class UserService {
   ) {}
 
   async getListUsers(req: Request): Promise<CommonResponse<UserResponse[]>> {
-    const result = await this.useRepository.findAll(mappingParams(req, userResEntity))
+    const filteredParam = objectMapper<typeof req.query, UserEntity>(req.query, userEntity)
+    const result = await this.useRepository.findAll(convertObjectToKeyValue(filteredParam))
     return {
       ...defaultCommonResponse,
       data: result.map((item) => objectMapper<UserEntity, UserResponse>(item, defaultUserResponse)),

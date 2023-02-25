@@ -1,47 +1,6 @@
 import { formatDate } from '@/src/libs'
-import { IConditionObject, IResAndEntity } from '@/src/shared'
-import { Request } from 'express'
-import { isBoolean, isNumber, isValidDate } from './../inventory/common.inventory'
-
-/*
-
-  author: @ericchentch
-  mapping query follow relation between res and entity
-*/
-export const mappingParams = (req: Request, mapList: IResAndEntity[]): IConditionObject[] => {
-  const query = Object.keys(req.query)
-  const validQuery = query.filter((queryKey) => mapList.find((item) => item.resKey === queryKey))
-  return mapList
-    .filter((item) => validQuery.includes(item.resKey))
-    .filter((item) => paramsResToEnt(req.query[item.resKey], item.typeEntity) !== '')
-    .map((item) => {
-      return {
-        key: item.entityKey,
-        value: paramsResToEnt(req.query[item.resKey], item.typeEntity),
-      }
-    })
-}
-
-/*
-
-  author: @ericchentch
-  transfer type response to type entity
-*/
-const paramsResToEnt = (
-  value: any,
-  typeEntity: 'string' | 'date' | 'boolean' | 'number'
-): string => {
-  if (typeEntity === 'string' || typeEntity === 'date') {
-    return String(value)
-  }
-  if (typeEntity === 'number' && isBoolean(Boolean(value))) {
-    return Boolean(value) ? '1' : '0'
-  }
-  if (typeEntity === 'number' && isNumber(value)) {
-    return String(value)
-  }
-  return ''
-}
+import { IConditionObject } from '@/src/shared'
+import { isNumber, isValidDate } from './../inventory/common.inventory'
 
 /*
 
@@ -106,13 +65,13 @@ export const mapperConvertValue = (value: any, targetType: any): any => {
   author: @ericchentch
   switch value for mapper
 */
-export const convertObjectToKeyValue = (source: object) => {
+export const convertObjectToKeyValue = (source: object): IConditionObject[] => {
   const keys = Object.keys(source)
   return keys
     .map((key) => {
       return {
         key,
-        value: source[key as keyof typeof source],
+        value: String(source[key as keyof typeof source]),
       }
     })
     .filter((item) => item.value !== 'error')
