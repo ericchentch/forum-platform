@@ -1,8 +1,10 @@
-import { CommonResponse, UserResponse } from '@/src/shared'
-import { Controller, Get, Inject, Post, Put, Req, UseFilters } from '@nestjs/common'
+import { CommonResponse, UserRequest, UserResponse } from '@/src/shared'
+import { Controller, Get, Inject, Post, Put, UseFilters } from '@nestjs/common'
 import { Request } from 'express'
+import { CustomRequest } from '../decorator'
 import { HttpExceptionFilter } from '../exception/exception.handler'
-import { UserService } from '../service/user/user.service'
+import { UserService } from '../service/user.service'
+import { CustomBody } from './../decorator/custom.body'
 
 @UseFilters(new HttpExceptionFilter())
 @Controller('users')
@@ -13,25 +15,25 @@ export class UserController {
   ) {}
 
   @Get('/get-list')
-  async getAllUser(@Req() req: Request): Promise<CommonResponse<UserResponse[]>> {
+  async getAllUser(@CustomRequest() req: Request): Promise<CommonResponse<UserResponse[]>> {
     const result = await this.userService.getListUsers(req)
     return result
   }
 
   @Post('/insert-or-update')
-  async insetUpdateUser(@Req() req: Request): Promise<CommonResponse<null>> {
+  async insetUpdateUser(@CustomBody() req: UserRequest): Promise<CommonResponse<null>> {
     const result = await this.userService.insertAndUpdateUser(req)
     return result
   }
 
   @Put('active-user')
-  async activeUser(@Req() req: Request): Promise<CommonResponse<null>> {
+  async activeUser(@CustomRequest() req: Request): Promise<CommonResponse<null>> {
     const result = await this.userService.changeActive(req, true)
     return result
   }
 
   @Put('deactivate-user')
-  async deactivateUser(@Req() req: Request): Promise<CommonResponse<null>> {
+  async deactivateUser(@CustomRequest() req: Request): Promise<CommonResponse<null>> {
     const result = await this.userService.changeActive(req, false)
     return result
   }

@@ -11,7 +11,7 @@ export const isBoolean = (val: any) => val === false || val === true
   check number
   author: @ericchentch
 */
-export const isNumber = (val: any) => !isNaN(val) && typeof val === 'number'
+export const isNumber = (val: any) => !isNaN(Number(val))
 /*
 
 

@@ -1,13 +1,14 @@
+import { hashPassword } from '@/src/libs'
 import { CommonResponse } from '@/src/shared'
 import { UserResponse } from '@/src/shared/user.dto'
 import { Inject, Injectable } from '@nestjs/common'
 import { Request } from 'express'
-import { InvalidParam, NotfoundException } from '../../exception'
-import { defaultCommonResponse, defaultUserResponse, userEntity } from '../../inventory'
-import { UserRepository } from '../../repository/user/user.repository'
-import { convertObjectToKeyValue, objectMapper } from '../common.service'
-import { UserRequest } from './../../../shared/user.dto'
-import { UserEntity } from './../../repository/user/user.entity'
+import { UserRequest } from '../../shared/user.dto'
+import { InvalidParam, NotfoundException } from '../exception'
+import { defaultCommonResponse, defaultUserResponse, userEntity } from '../inventory'
+import { UserEntity } from '../repository/user/user.entity'
+import { UserRepository } from '../repository/user/user.repository'
+import { convertObjectToKeyValue, objectMapper } from './common.service'
 
 @Injectable()
 export class UserService {
@@ -25,15 +26,18 @@ export class UserService {
     }
   }
 
-  async insertAndUpdateUser(req: Request): Promise<CommonResponse<null>> {
-    const request = objectMapper<UserRequest, UserEntity>(req.body, userEntity)
+  async insertAndUpdateUser(req: UserRequest): Promise<CommonResponse<null>> {
+    const request = objectMapper<UserRequest, UserEntity>(req, userEntity)
     if (request['id']) {
       const findUser = await this.useRepository.findOne({ key: 'id', value: request['id'] })
       if (!findUser) {
         throw new NotfoundException('not found user')
       }
     }
-    await this.useRepository.insertAndUpdate(convertObjectToKeyValue(request))
+    const hashedPass = await hashPassword(process.env.DEFAULT_PASSWORD || '')
+    await this.useRepository.insertAndUpdate(
+      convertObjectToKeyValue({ ...request, password: hashedPass })
+    )
     return {
       ...defaultCommonResponse,
       message: request['id'] ? 'update success' : 'add success',
