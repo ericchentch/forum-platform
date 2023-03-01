@@ -1,4 +1,4 @@
-import { CommonResponse, LoginRequest, LoginResponse } from '@/src/shared'
+import { CommonResponse, LoginRequest, LoginResponse, RegisterRequest } from '@/src/shared'
 import { Body, Controller, Inject, Post, UseFilters } from '@nestjs/common'
 import { HttpExceptionFilter } from '../exception/exception.handler'
 import { AuthService } from '../service/auth.service'
@@ -12,8 +12,14 @@ export class AuthController {
   ) {}
 
   @Post('/login')
-  async insetUpdateUser(@Body() req: LoginRequest): Promise<CommonResponse<LoginResponse>> {
+  async login(@Body() req: LoginRequest): Promise<CommonResponse<LoginResponse>> {
     const result = await this.authService.login(req)
+    return result
+  }
+
+  @Post('/register')
+  async register(@Body() req: RegisterRequest): Promise<CommonResponse<null>> {
+    const result = await this.authService.register(req)
     return result
   }
 }

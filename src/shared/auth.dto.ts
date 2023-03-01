@@ -7,3 +7,11 @@ export interface LoginResponse {
   token: string
   userId: string
 }
+
+export interface RegisterRequest {
+  name: string
+  username: string
+  password: string
+  email: string
+  phone: string
+}

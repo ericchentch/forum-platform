@@ -22,7 +22,7 @@ export class BaseRepository<T extends {}> {
   }
 
   async findOne(condition: IConditionObject) {
-    const query = `SELECT * FROM ${this.table} ${generateConditionWhere([condition])}`
+    const query = `SELECT * FROM ${this.table} ${generateConditionWhere(this.clazz, [condition])}`
     this.logger.warn(query)
     const result = await executeQuery<T>(query)
     if (result.length > 0) {
