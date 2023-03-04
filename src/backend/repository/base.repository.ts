@@ -11,6 +11,7 @@ import {
 export class BaseRepository<T extends {}> {
   table: string = ''
   clazz: object = {}
+  fieldId: string = ''
 
   private readonly logger = new Logger(HttpExceptionFilter.name)
 
@@ -31,14 +32,14 @@ export class BaseRepository<T extends {}> {
   }
 
   async insertAndUpdate(params: IConditionObject[]) {
-    const thisId = params.find((item) => item.key === 'id')
+    const thisId = params.find((item) => item.key === this.fieldId)
     if (thisId) {
       const condition = {
         key: thisId.key,
         value: String(thisId.value),
       }
       const query = `UPDATE ${this.table} ${generateUpdate(
-        params.filter((item) => item.key !== 'id'),
+        params.filter((item) => item.key !== this.fieldId),
         this.clazz
       )} ${generateConditionWhere(this.clazz, [condition])}`
       this.logger.warn(query)

@@ -11,5 +11,6 @@ export class UserRepository extends BaseRepository<UserEntity> {
     super()
     this.table = this.tableUser
     this.clazz = userEntity
+    this.fieldId === 'id'
   }
 }
