@@ -7,7 +7,6 @@ import {
   ObjectValidator,
 } from './../../validation/index'
 export const UserValidatorSchema: ObjectValidator<UserRequest> = {
-  id: IS_REQUIRED,
   name: IS_REQUIRED,
   username: IS_USERNAME,
   phone: IS_PHONE,
