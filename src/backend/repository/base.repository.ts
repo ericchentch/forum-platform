@@ -10,8 +10,9 @@ import {
 
 export class BaseRepository<T extends {}> {
   table: string = ''
-  clazz: object = {}
   fieldId: string = ''
+  clazz: object = {}
+  modifiedField: string = ''
 
   private readonly logger = new Logger(HttpExceptionFilter.name)
 
@@ -39,13 +40,17 @@ export class BaseRepository<T extends {}> {
         value: String(thisId.value),
       }
       const query = `UPDATE ${this.table} ${generateUpdate(
-        params.filter((item) => item.key !== this.fieldId),
-        this.clazz
+        params.filter((item) => item.key !== this.fieldId && item.key !== this.modifiedField),
+        this.clazz,
+        this.modifiedField
       )} ${generateConditionWhere(this.clazz, [condition])}`
       this.logger.warn(query)
       await executeQuery<T>(query)
     } else {
-      const query = `INSERT INTO ${this.table} ${generateInsert(params, this.clazz)}`
+      const query = `INSERT INTO ${this.table} ${generateInsert(
+        params.filter((item) => item.key !== this.fieldId),
+        this.clazz
+      )}`
       this.logger.warn(query)
       await executeQuery<T>(query)
     }

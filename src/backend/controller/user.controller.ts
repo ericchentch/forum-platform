@@ -2,6 +2,7 @@ import { CommonResponse, UserRequest, UserResponse } from '@/src/shared'
 import { Controller, Get, Inject, Post, Put, UseFilters } from '@nestjs/common'
 import { Request } from 'express'
 import { CustomRequest } from '../decorator'
+import { CustomParamOne } from '../decorator/custom.param.one'
 import { HttpExceptionFilter } from '../exception/exception.handler'
 import { UserService } from '../service/user/user.service'
 import { CustomBody } from './../decorator/custom.body'
@@ -27,14 +28,14 @@ export class UserController {
   }
 
   @Put('active-user')
-  async activeUser(@CustomRequest() req: Request): Promise<CommonResponse<null>> {
-    const result = await this.userService.changeActive(req, true)
+  async activeUser(@CustomParamOne('id') id: string): Promise<CommonResponse<null>> {
+    const result = await this.userService.changeActive(id, true)
     return result
   }
 
   @Put('deactivate-user')
-  async deactivateUser(@CustomRequest() req: Request): Promise<CommonResponse<null>> {
-    const result = await this.userService.changeActive(req, false)
+  async deactivateUser(@CustomParamOne('id') id: string): Promise<CommonResponse<null>> {
+    const result = await this.userService.changeActive(id, false)
     return result
   }
 }

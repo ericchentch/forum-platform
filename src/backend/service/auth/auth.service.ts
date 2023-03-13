@@ -13,7 +13,9 @@ import { InvalidRequest } from '../../exception/invalid.request.exception'
 import { defaultCommonResponse, userEntity } from '../../inventory'
 import { UserEntity } from '../../repository/user/user.entity'
 import { UserRepository } from '../../repository/user/user.repository'
+import { validate } from '../../validation'
 import { convertObjectToKeyValue, objectMapper } from '../common.service'
+import { LoginValidateSchema, RegisterValidateSchema } from './auth.validator'
 
 @Injectable()
 export class AuthService {
@@ -43,6 +45,10 @@ export class AuthService {
 
   async login(req: LoginRequest): Promise<CommonResponse<LoginResponse>> {
     const { username, password } = req
+    const resultVal = validate<LoginRequest>(req, LoginValidateSchema)
+    if (resultVal.isError) {
+      throw new InvalidRequest('invalid request', resultVal.error)
+    }
     let findUser = this.checkUser(await this.findUserByUsername(username))
     //password in request must be base64
     const rawPassword = decodeBase64(password)
@@ -60,6 +66,10 @@ export class AuthService {
 
   async register(req: RegisterRequest): Promise<CommonResponse<null>> {
     const { username, password, email, phone } = req
+    const resultVal = validate<RegisterRequest>(req, RegisterValidateSchema)
+    if (resultVal.isError) {
+      throw new InvalidRequest('invalid request', resultVal.error)
+    }
     const findUsername = await this.useRepository.findOne({ key: 'username', value: username })
     if (findUsername) {
       throw new InvalidRequest('username existed', { username: 'username existed' })

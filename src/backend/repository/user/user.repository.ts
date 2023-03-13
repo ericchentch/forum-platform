@@ -5,12 +5,11 @@ import { UserEntity } from './user.entity'
 
 @Injectable()
 export class UserRepository extends BaseRepository<UserEntity> {
-  tableUser: string = 'user'
-
   constructor() {
     super()
-    this.table = this.tableUser
+    this.table = 'user'
     this.clazz = userEntity
-    this.fieldId === 'id'
+    this.fieldId = 'id'
+    this.modifiedField = 'modified'
   }
 }

@@ -19,7 +19,7 @@ export const isNumber = (val: any) => !isNaN(Number(val))
   author: @ericchentch
 */
 export const isValidDate = (date: any) => {
-  return date && date.constructor === Date
+  return date && Object.prototype.toString.call(date) === '[object Date]'
 }
 /*
 

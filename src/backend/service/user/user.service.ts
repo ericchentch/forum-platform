@@ -4,7 +4,7 @@ import { UserResponse } from '@/src/shared/user.dto'
 import { Inject, Injectable } from '@nestjs/common'
 import { Request } from 'express'
 import { UserRequest } from '../../../shared/user.dto'
-import { InvalidParam, NotfoundException } from '../../exception'
+import { NotfoundException } from '../../exception'
 import { InvalidRequest } from '../../exception/invalid.request.exception'
 import { defaultCommonResponse, defaultUserResponse, userEntity } from '../../inventory'
 import { UserEntity } from '../../repository/user/user.entity'
@@ -51,11 +51,8 @@ export class UserService {
     }
   }
 
-  async changeActive(req: Request, isActive: boolean): Promise<CommonResponse<null>> {
-    if (!req.query['id']) {
-      throw new InvalidParam('not found param id')
-    }
-    const findUser = await this.useRepository.findOne({ key: 'id', value: String(req.query['id']) })
+  async changeActive(id: string, isActive: boolean): Promise<CommonResponse<null>> {
+    const findUser = await this.useRepository.findOne({ key: 'id', value: String(id) })
     if (!findUser) {
       throw new NotfoundException('not found user')
     }
