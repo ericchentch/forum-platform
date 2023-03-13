@@ -1,19 +1,19 @@
-import { decodeBase64, hashPassword } from '@/src/libs'
+import { comparePassword, decodeBase64, hashPassword } from '@/src/libs'
 import { CommonResponse, LoginRequest, LoginResponse, RegisterRequest } from '@/src/shared'
 import { Inject, Injectable } from '@nestjs/common'
-import { NotfoundException } from '../exception'
-import { InvalidRequest } from '../exception/invalid.request.exception'
-import { defaultCommonResponse, userEntity } from '../inventory'
-import { UserEntity } from '../repository/user/user.entity'
-import { UserRepository } from '../repository/user/user.repository'
-import { generateToken } from './../../libs/jwt.function'
+import { generateToken } from '../../../libs/jwt.function'
 import {
   EMAIL_REGEX,
   PASSWORD_REGEX,
   PHONE_REGEX,
   USERNAME_REGEX,
-} from './../constants/type.validation'
-import { convertObjectToKeyValue, objectMapper } from './common.service'
+} from '../../constants/type.validation'
+import { NotfoundException } from '../../exception'
+import { InvalidRequest } from '../../exception/invalid.request.exception'
+import { defaultCommonResponse, userEntity } from '../../inventory'
+import { UserEntity } from '../../repository/user/user.entity'
+import { UserRepository } from '../../repository/user/user.repository'
+import { convertObjectToKeyValue, objectMapper } from '../common.service'
 
 @Injectable()
 export class AuthService {
@@ -46,8 +46,7 @@ export class AuthService {
     let findUser = this.checkUser(await this.findUserByUsername(username))
     //password in request must be base64
     const rawPassword = decodeBase64(password)
-    const hashedPassword = await hashPassword(rawPassword)
-    if (hashedPassword !== findUser.password) {
+    if (!comparePassword(rawPassword, findUser.password)) {
       throw new InvalidRequest('password not match', { password: 'password not match' })
     }
     return {

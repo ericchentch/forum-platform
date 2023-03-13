@@ -3,7 +3,7 @@ import { Controller, Get, Inject, Post, Put, UseFilters } from '@nestjs/common'
 import { Request } from 'express'
 import { CustomRequest } from '../decorator'
 import { HttpExceptionFilter } from '../exception/exception.handler'
-import { UserService } from '../service/user.service'
+import { UserService } from '../service/user/user.service'
 import { CustomBody } from './../decorator/custom.body'
 
 @UseFilters(new HttpExceptionFilter())

@@ -1,7 +1,7 @@
 import { CommonResponse, LoginRequest, LoginResponse, RegisterRequest } from '@/src/shared'
 import { Body, Controller, Inject, Post, UseFilters } from '@nestjs/common'
 import { HttpExceptionFilter } from '../exception/exception.handler'
-import { AuthService } from '../service/auth.service'
+import { AuthService } from '../service/auth/auth.service'
 
 @UseFilters(new HttpExceptionFilter())
 @Controller('auth')

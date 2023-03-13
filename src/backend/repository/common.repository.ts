@@ -74,7 +74,7 @@ const generateConditionWhere = (clazz: object, params?: IConditionObject[]) => {
           isWhere = false
           isOr = true
         }
-        condition += ` ${params[i].key}='${values[j]}' `
+        condition += ` ${params[i].key} LIKE '%${values[j]}%' `
       }
       if (isNumber(clazz[params[i].key as keyof typeof clazz]) && !isOr) {
         if (isWhere) {

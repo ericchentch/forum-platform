@@ -3,12 +3,15 @@ import { CommonResponse } from '@/src/shared'
 import { UserResponse } from '@/src/shared/user.dto'
 import { Inject, Injectable } from '@nestjs/common'
 import { Request } from 'express'
-import { UserRequest } from '../../shared/user.dto'
-import { InvalidParam, NotfoundException } from '../exception'
-import { defaultCommonResponse, defaultUserResponse, userEntity } from '../inventory'
-import { UserEntity } from '../repository/user/user.entity'
-import { UserRepository } from '../repository/user/user.repository'
-import { convertObjectToKeyValue, objectMapper } from './common.service'
+import { UserRequest } from '../../../shared/user.dto'
+import { InvalidParam, NotfoundException } from '../../exception'
+import { InvalidRequest } from '../../exception/invalid.request.exception'
+import { defaultCommonResponse, defaultUserResponse, userEntity } from '../../inventory'
+import { UserEntity } from '../../repository/user/user.entity'
+import { UserRepository } from '../../repository/user/user.repository'
+import { validate } from '../../validation'
+import { convertObjectToKeyValue, objectMapper } from '../common.service'
+import { UserValidatorSchema } from './user.validator'
 
 @Injectable()
 export class UserService {
@@ -27,9 +30,13 @@ export class UserService {
   }
 
   async insertAndUpdateUser(req: UserRequest): Promise<CommonResponse<null>> {
+    const resultVal = validate<UserRequest>(req, UserValidatorSchema)
+    if (resultVal.isError) {
+      throw new InvalidRequest('invalid request', resultVal.error)
+    }
     const request = objectMapper<UserRequest, UserEntity>(req, userEntity)
     if (request['id']) {
-      const findUser = await this.useRepository.findOne({ key: 'id', value: request['id'] })
+      const findUser = await this.useRepository.findOne({ key: 'id', value: String(request['id']) })
       if (!findUser) {
         throw new NotfoundException('not found user')
       }
