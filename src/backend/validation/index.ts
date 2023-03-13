@@ -1,7 +1,7 @@
-import { validateFunction } from './rule-contaner'
+import { validateFunction } from './type.validation'
 
 export type ObjectValidator<T extends object> = {
-  [key in keyof T]: validateFunction
+  [key in keyof T]?: validateFunction
 }
 
 export const validate = <T extends object>(entity: T, validateObject: ObjectValidator<T>) => {
@@ -10,13 +10,15 @@ export const validate = <T extends object>(entity: T, validateObject: ObjectVali
     error = { ...error, [key]: '' }
   })
   Object.keys(validateObject).forEach((item) => {
-    error = {
-      ...error,
-      ...validateObject[item as keyof typeof validateObject](
-        error as Record<keyof T, string>,
-        entity[item as keyof T],
-        item as keyof T
-      ),
+    if (validateObject[item as keyof typeof validateObject]) {
+      error = {
+        ...error,
+        ...validateObject[item as keyof typeof validateObject]!(
+          error as Record<keyof T, string>,
+          entity[item as keyof T],
+          item as keyof T
+        ),
+      }
     }
   })
   const isError: boolean =
@@ -28,3 +30,9 @@ export const validate = <T extends object>(entity: T, validateObject: ObjectVali
     isError,
   }
 }
+
+export * from './IS_EMAIL'
+export * from './IS_NUMBER'
+export * from './IS_PHONE'
+export * from './IS_REQUIRED'
+export * from './IS_USERNAME'
