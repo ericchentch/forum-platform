@@ -1,5 +1,5 @@
 export interface UserResponse {
-  id: string
+  userId: string
   name: string
   username: string
   phone: string
@@ -10,7 +10,7 @@ export interface UserResponse {
 }
 
 export interface UserRequest {
-  id: string
+  userId: string
   name: string
   username: string
   phone: string

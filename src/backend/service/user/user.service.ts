@@ -4,6 +4,7 @@ import { UserResponse } from '@/src/shared/user.dto'
 import { Inject, Injectable } from '@nestjs/common'
 import { Request } from 'express'
 import { UserRequest } from '../../../shared/user.dto'
+import { ID_FIELD_USER } from '../../constants'
 import { NotfoundException } from '../../exception'
 import { InvalidRequest } from '../../exception/invalid.request.exception'
 import { defaultCommonResponse, defaultUserResponse, userEntity } from '../../inventory'
@@ -35,24 +36,30 @@ export class UserService {
       throw new InvalidRequest('invalid request', resultVal.error)
     }
     const request = objectMapper<UserRequest, UserEntity>(req, userEntity)
-    if (request['id']) {
-      const findUser = await this.useRepository.findOne({ key: 'id', value: String(request['id']) })
+    if (request[ID_FIELD_USER]) {
+      const findUser = await this.useRepository.findOne({
+        key: ID_FIELD_USER,
+        value: String(request[ID_FIELD_USER]),
+      })
       if (!findUser) {
         throw new NotfoundException('not found user')
       }
     }
     const hashedPass = await hashPassword(process.env.DEFAULT_PASSWORD || '')
     await this.useRepository.insertAndUpdate(
-      convertObjectToKeyValue({ ...request, password: hashedPass })
+      convertObjectToKeyValue({
+        ...request,
+        password: hashedPass,
+      })
     )
     return {
       ...defaultCommonResponse,
-      message: request['id'] ? 'update success' : 'add success',
+      message: request[ID_FIELD_USER] ? 'update success' : 'add success',
     }
   }
 
   async changeActive(id: string, isActive: boolean): Promise<CommonResponse<null>> {
-    const findUser = await this.useRepository.findOne({ key: 'id', value: String(id) })
+    const findUser = await this.useRepository.findOne({ key: ID_FIELD_USER, value: String(id) })
     if (!findUser) {
       throw new NotfoundException('not found user')
     }

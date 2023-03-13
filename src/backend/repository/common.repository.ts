@@ -1,12 +1,8 @@
+import { camelToSnake, snakeToCamel } from '@/src/libs'
 import { IConditionObject } from '@/src/shared'
 import mysql from 'mysql2/promise'
 import { RepositoryException } from '../exception/repository.exception'
-import {
-  convertToDateTimeSql,
-  isBoolean,
-  isNumber,
-  isValidDate,
-} from './../inventory/common.inventory'
+import { convertToDateTimeSql, isValidDate } from './../inventory/common.inventory'
 
 /*
 
@@ -50,10 +46,24 @@ const executeQuery = async <T>(sql: string) => {
 /*
 
 
+  mapper record (from data base) to entity
+  author: @ericchentch
+*/
+export const rowMapper = (source: any): any => {
+  let result = {}
+  Object.keys(source).forEach((key) => {
+    result = { ...result, [snakeToCamel(key)]: source[key] }
+  })
+  return result
+}
+
+/*
+
+
   generate conditions for query
   author: @ericchentch
 */
-const generateConditionWhere = (clazz: object, params?: IConditionObject[]) => {
+const generateConditionWhere = (clazz: object, fieldId: string, params?: IConditionObject[]) => {
   if (!params) {
     return ''
   }
@@ -62,41 +72,44 @@ const generateConditionWhere = (clazz: object, params?: IConditionObject[]) => {
   for (let i = 0; i < params.length; i++) {
     let isAnd = false
     const values = params[i].value.split(',')
+    const fieldCamel = camelToSnake(params[i].key)
     for (let j = 0; j < values.length; j++) {
       let isOr = false
-      if (isValidDate(clazz[params[i].key as keyof typeof clazz]) && !isOr) {
+      if (params[i].key === fieldId && !isOr) {
         if (isWhere) {
           condition += ' WHERE '
           isWhere = false
           isOr = true
         }
-        condition += ` ${params[i].key}='${convertToDateTimeSql(new Date(values[j]))}' `
-      }
-      if (isNumber(clazz[params[i].key as keyof typeof clazz]) && !isOr) {
+        condition += ` ${fieldCamel}='${values[j]}' `
+      } else if (isValidDate(clazz[params[i].key as keyof typeof clazz]) && !isOr) {
         if (isWhere) {
           condition += ' WHERE '
           isWhere = false
           isOr = true
         }
-        condition += ` ${params[i].key}=${Number(values[j])} `
-      }
-      if (isBoolean(clazz[params[i].key as keyof typeof clazz]) && !isOr) {
+        condition += ` ${fieldCamel}='${convertToDateTimeSql(new Date(values[j]))}' `
+      } else if (typeof clazz[params[i].key as keyof typeof clazz] === 'number' && !isOr) {
         if (isWhere) {
           condition += ' WHERE '
           isWhere = false
           isOr = true
         }
-        condition += ` ${clazz[params[i].key as keyof typeof clazz]}=${
-          Boolean(values[j]) === true ? 1 : 0
-        } `
-      }
-      if (typeof clazz[params[i].key as keyof typeof clazz] === 'string' && !isOr) {
+        condition += ` ${fieldCamel}=${Number(values[j])} `
+      } else if (typeof clazz[params[i].key as keyof typeof clazz] === 'boolean' && !isOr) {
         if (isWhere) {
           condition += ' WHERE '
           isWhere = false
           isOr = true
         }
-        condition += ` ${params[i].key} LIKE '%${values[j]}%' `
+        condition += ` ${fieldCamel}=${Boolean(values[j]) === true ? 1 : 0} `
+      } else if (typeof clazz[params[i].key as keyof typeof clazz] === 'string' && !isOr) {
+        if (isWhere) {
+          condition += ' WHERE '
+          isWhere = false
+          isOr = true
+        }
+        condition += ` ${fieldCamel} LIKE '%${values[j]}%' `
       }
       if (j !== values.length - 1 && isOr) {
         condition += ' OR '
@@ -120,7 +133,7 @@ const generateConditionWhere = (clazz: object, params?: IConditionObject[]) => {
 const generateInsert = (params: IConditionObject[], clazz: object) => {
   let insertQuery = ' ('
   for (let i = 0; i < params.length; i++) {
-    insertQuery += `${params[i].key}`
+    insertQuery += `${camelToSnake(params[i].key)}`
     if (i !== params.length - 1) {
       insertQuery += ','
     }
@@ -153,14 +166,15 @@ const generateInsert = (params: IConditionObject[], clazz: object) => {
 const generateUpdate = (params: IConditionObject[], clazz: object, modifiedField: string) => {
   let insertQuery = ' SET '
   for (let i = 0; i < params.length; i++) {
+    const fieldName = camelToSnake(params[i].key)
     if (typeof clazz[params[i].key as keyof typeof clazz] === 'string') {
-      insertQuery += `${params[i].key}='${params[i].value}',`
+      insertQuery += `${fieldName}='${params[i].value}',`
     } else if (isValidDate(clazz[params[i].key as keyof typeof clazz])) {
-      insertQuery += `${params[i].key}='${convertToDateTimeSql(new Date(params[i].value))}',`
+      insertQuery += `${fieldName}='${convertToDateTimeSql(new Date(params[i].value))}',`
     } else if (typeof clazz[params[i].key as keyof typeof clazz] === 'number') {
-      insertQuery += `${params[i].key}=${params[i].value},`
+      insertQuery += `${fieldName}=${params[i].value},`
     } else if (typeof clazz[params[i].key as keyof typeof clazz] === 'boolean') {
-      insertQuery += `${params[i].key}=${params[i].value},`
+      insertQuery += `${fieldName}=${params[i].value},`
     }
   }
   return `${insertQuery}${modifiedField}=NOW()`

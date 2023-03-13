@@ -3,6 +3,7 @@ import { UserEntity } from '../repository/user/user.entity'
 
 export const userEntity: UserEntity = {
   id: 0,
+  userId: '',
   name: '',
   username: '',
   password: '',
@@ -14,7 +15,7 @@ export const userEntity: UserEntity = {
 }
 
 export const defaultUserResponse: UserResponse = {
-  id: '',
+  userId: '',
   name: '',
   username: '',
   phone: '',

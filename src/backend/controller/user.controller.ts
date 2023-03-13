@@ -1,11 +1,9 @@
 import { CommonResponse, UserRequest, UserResponse } from '@/src/shared'
 import { Controller, Get, Inject, Post, Put, UseFilters } from '@nestjs/common'
 import { Request } from 'express'
-import { CustomRequest } from '../decorator'
-import { CustomParamOne } from '../decorator/custom.param.one'
+import { CustomBody, CustomParamOne, CustomRequest } from '../decorator'
 import { HttpExceptionFilter } from '../exception/exception.handler'
 import { UserService } from '../service/user/user.service'
-import { CustomBody } from './../decorator/custom.body'
 
 @UseFilters(new HttpExceptionFilter())
 @Controller('users')
