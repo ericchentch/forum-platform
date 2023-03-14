@@ -33,6 +33,7 @@ export const validate = <T extends object>(entity: T, validateObject: ObjectVali
 
 export * from './IS_EMAIL'
 export * from './IS_NUMBER'
+export * from './IS_PASSWORD'
 export * from './IS_PHONE'
 export * from './IS_REQUIRED'
 export * from './IS_USERNAME'

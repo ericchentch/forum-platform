@@ -1,5 +1,5 @@
 export interface CommonResponse<T> {
-  data: T
+  data: T | null
   status: number
   message: string
   isSuccess: boolean

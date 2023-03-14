@@ -2,19 +2,15 @@ import { comparePassword, decodeBase64, hashPassword } from '@/src/libs'
 import { CommonResponse, LoginRequest, LoginResponse, RegisterRequest } from '@/src/shared'
 import { Inject, Injectable } from '@nestjs/common'
 import { generateToken } from '../../../libs/jwt.function'
-import {
-  EMAIL_REGEX,
-  PASSWORD_REGEX,
-  PHONE_REGEX,
-  USERNAME_REGEX,
-} from '../../constants/type.validation'
+import { EMAIL_REGEX, PHONE_REGEX, USERNAME_REGEX } from '../../constants/type.validation'
 import { NotfoundException } from '../../exception'
 import { InvalidRequest } from '../../exception/invalid.request.exception'
-import { defaultCommonResponse, userEntity } from '../../inventory'
+import { userEntity } from '../../inventory'
 import { UserEntity } from '../../repository/user/user.entity'
 import { UserRepository } from '../../repository/user/user.repository'
 import { validate } from '../../validation'
 import { convertObjectToKeyValue, objectMapper } from '../common.service'
+import { renderSuccessResponse } from './../common.service'
 import { LoginValidateSchema, RegisterValidateSchema } from './auth.validator'
 
 @Injectable()
@@ -55,13 +51,12 @@ export class AuthService {
     if (!comparePassword(rawPassword, findUser.password)) {
       throw new InvalidRequest('password not match', { password: 'password not match' })
     }
-    return {
-      ...defaultCommonResponse,
+    return renderSuccessResponse<LoginResponse>({
       data: {
         token: generateToken({ userId: String(findUser.id) }),
         userId: String(findUser.id),
       },
-    }
+    })
   }
 
   async register(req: RegisterRequest): Promise<CommonResponse<null>> {
@@ -82,20 +77,23 @@ export class AuthService {
     if (findPhone) {
       throw new InvalidRequest('phone existed', { phone: 'phone existed' })
     }
-    const rawPassword = decodeBase64(password)
-    if (!rawPassword.match(PASSWORD_REGEX)) {
-      throw new InvalidRequest('password must pass conditions', {
-        password: 'password must pass conditions',
-      })
-    }
     const user = objectMapper<RegisterRequest, UserEntity>(req, userEntity)
-    const hashedPassword = await hashPassword(rawPassword)
+    const hashedPassword = await hashPassword(decodeBase64(password))
     await this.useRepository.insertAndUpdate(
       convertObjectToKeyValue({ ...user, password: hashedPassword })
     )
-    return {
-      ...defaultCommonResponse,
-      message: 'register success',
+    return renderSuccessResponse<null>({ message: 'register success' })
+  }
+
+  async forgotPassword(email: string): Promise<CommonResponse<null>> {
+    const findUser = await this.useRepository.findOne({ key: 'email', value: email })
+    if (!findUser) {
+      throw new InvalidRequest('not found user', {})
     }
+    const hashedPassword = await hashPassword(process.env.DEFAULT_PASSWORD || '')
+    await this.useRepository.insertAndUpdate(
+      convertObjectToKeyValue({ ...findUser, password: hashedPassword })
+    )
+    return renderSuccessResponse<null>({ message: 'email forgot password sent!' })
   }
 }

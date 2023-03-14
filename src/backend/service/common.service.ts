@@ -1,6 +1,6 @@
 import { formatDate } from '@/src/libs'
-import { IConditionObject } from '@/src/shared'
-import { isNumber, isValidDate } from './../inventory/common.inventory'
+import { CommonResponse, IConditionObject } from '@/src/shared'
+import { defaultCommonResponse, isNumber, isValidDate } from './../inventory/common.inventory'
 
 /*
 
@@ -75,4 +75,14 @@ export const convertObjectToKeyValue = (source: object): IConditionObject[] => {
       }
     })
     .filter((item) => item.value !== 'error')
+}
+
+/*
+  author: @ericchentch
+  render success response
+*/
+export const renderSuccessResponse = <T>(
+  extendValue: Partial<CommonResponse<T>>
+): CommonResponse<T> => {
+  return { ...defaultCommonResponse, ...extendValue }
 }
