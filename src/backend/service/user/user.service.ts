@@ -30,16 +30,16 @@ export class UserService {
     }
   }
 
-  async insertAndUpdateUser(req: UserRequest): Promise<CommonResponse<null>> {
+  async insertAndUpdateUser(req: UserRequest, userId?: string): Promise<CommonResponse<null>> {
     const resultVal = validate<UserRequest>(req, UserValidatorSchema)
     if (resultVal.isError) {
       throw new InvalidRequest('invalid request', resultVal.error)
     }
     const request = objectMapper<UserRequest, UserEntity>(req, userEntity)
-    if (request[ID_FIELD_USER]) {
+    if (userId) {
       const findUser = await this.useRepository.findOne({
         key: ID_FIELD_USER,
-        value: String(request[ID_FIELD_USER]),
+        value: String(userId),
       })
       if (!findUser) {
         throw new NotfoundException('not found user')
@@ -50,11 +50,12 @@ export class UserService {
       convertObjectToKeyValue({
         ...request,
         password: hashedPass,
+        [ID_FIELD_USER]: userId ? userId : undefined,
       })
     )
     return {
       ...defaultCommonResponse,
-      message: request[ID_FIELD_USER] ? 'update success' : 'add success',
+      message: userId ? 'update success' : 'add success',
     }
   }
 

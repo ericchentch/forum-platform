@@ -19,9 +19,18 @@ export class UserController {
     return result
   }
 
-  @Post('/insert-or-update')
-  async insetUpdateUser(@CustomBody() req: UserRequest): Promise<CommonResponse<null>> {
+  @Post('/insert-new-user')
+  async insertNewUser(@CustomBody() req: UserRequest): Promise<CommonResponse<null>> {
     const result = await this.userService.insertAndUpdateUser(req)
+    return result
+  }
+
+  @Put('/update-user')
+  async updateUser(
+    @CustomBody() req: UserRequest,
+    @CustomParamOne('id') id: string
+  ): Promise<CommonResponse<null>> {
+    const result = await this.userService.insertAndUpdateUser(req, id)
     return result
   }
 
